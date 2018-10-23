@@ -17,6 +17,10 @@ var canvas = null;
 
 var keypressed = false;
 
+var mainCharBox = null, mainCharBoxHelper = null;
+var move = null;
+var colliderObjects = [];
+
 function createSection() {
     geometry = new THREE.PlaneGeometry(200, 6, 50, 50);
     var mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:0x5fba51, side:THREE.DoubleSide}));
@@ -24,7 +28,26 @@ function createSection() {
     mesh.position.y = -1;
     mesh.position.z = -2;
 
+    let x = Math.floor(Math.random() * 13 - 6) * 2;
+    let z = Math.floor(Math.random() * 2 + 1) * 2;
+    material = new THREE.MeshPhongMaterial({ color: 0xffffff });
+    geometry = new THREE.CubeGeometry(2, 5, 2);
+
+    // And put the geometry and material together into a mesh
+    let object = new THREE.Mesh(geometry, material);
+    object.position.x = x;
+    object.position.z = -z;
+    object.position.y = 1.5;
+
+    // Collider
+    let cubeBBox = new THREE.Box3().setFromObject(object);
+    let cubeBBoxHelper = new THREE.BoxHelper(object, 0x00ff00);
+    console.log(cubeBBox);
+    colliderObjects.push(cubeBBox);
+
     group.add(mesh);
+    group.add(object);
+    group.add(cubeBBoxHelper);
 }
 
 function onKeyDown(event)
@@ -35,17 +58,21 @@ function onKeyDown(event)
         {
             case 38:
                 mainChar.position.z -= 2;
+                move = 'up';
                 break;
 
             case 37:
                 mainChar.position.x -= 2;
+                move = 'left';
                 break;
 
             case 39:
                 mainChar.position.x += 2;
+                move = 'right';
                 break;
         }
 
+        console.log(mainCharBox);
         keypressed = true;
     }
 }
@@ -55,14 +82,41 @@ function onKeyUp(event)
     keypressed = false;
 }
 
+function doesItCrash() {
+    mainCharBoxHelper.update();
+    mainCharBox = new THREE.Box3().setFromObject(mainChar);
+
+    for (var collider of colliderObjects) {
+        if (mainCharBox.intersectsBox(collider)) {
+            console.log('Collides');
+            switch(move) {
+                case 'up':
+                        mainChar.position.z += 2;
+                        break;
+
+                case 'right':
+                        mainChar.position.x -= 2;
+                        break;
+
+                case 'left':
+                        mainChar.position.x += 2;
+                        break;
+
+                default:
+                        break;
+            }
+        }
+    }
+}
+
 function run() {
     requestAnimationFrame(function() { run(); });
     
         // Render the scene
         renderer.render( scene, camera );
 
-        // Click detection
-        //onClickButtonDetection();    
+        // Collider detection
+        doesItCrash();
 
         // Update the camera controller
         orbitControls.update();
@@ -164,7 +218,11 @@ function createScene(canvas) {
 
     // And put the geometry and material together into a mesh
     mainChar = new THREE.Mesh(geometry, material);
-    group.add(mainChar)
+
+    mainCharBoxHelper =new THREE.BoxHelper(mainChar, 0x00ff00);
+
+    group.add(mainChar);
+    group.add(mainCharBoxHelper);
 
     createSection();
 
