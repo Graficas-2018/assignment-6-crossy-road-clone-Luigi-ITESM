@@ -24,6 +24,8 @@ var mainCharBoxSize = new THREE.Vector3( 1.5, 1.5, 1.5 );
 
 var carAnimation = null, woodAnimation = [];
 
+var collidesWater = false, collidesWood = false;
+
 function createSection() {
     // Land
     geometry = new THREE.PlaneGeometry(200, 6, 50, 50);
@@ -31,6 +33,7 @@ function createSection() {
     mesh.rotation.x = -Math.PI / 2;
     mesh.position.y = -1;
     mesh.position.z = -2;
+    mesh.tag = 'land';
 
     let x = Math.floor(Math.random() * 13 - 6) * 2;
     let z = Math.floor(Math.random() * 3) * 2;
@@ -46,7 +49,7 @@ function createSection() {
     // Collider
     let cubeBBox = new THREE.Box3().setFromObject(object);
     let cubeBBoxHelper = new THREE.BoxHelper(object, 0x00ff00);
-    console.log(cubeBBox);
+    //console.log(cubeBBox);
     colliderObjects.push(cubeBBox);
 
     group.add(mesh);
@@ -59,6 +62,8 @@ function createSection() {
     mesh.rotation.x = -Math.PI / 2;
     mesh.position.y = -1;
     mesh.position.z = -8;
+
+    mesh.tag = 'street';
 
     x = Math.floor(Math.random() * 13 - 6) * 2;
     z = Math.floor(Math.random() * 3) * 2 + 6;
@@ -87,6 +92,12 @@ function createSection() {
 
     group.add(mesh);
 
+    //waterCollider
+    cubeBBox = new THREE.Box3().setFromObject(mesh);
+    cubeBBox.tag = 'water';
+
+    colliderObjects.push(cubeBBox);
+
     //z = Math.floor(Math.random() * 2 + 1) * 2 + 12;
 
     geometry = new THREE.PlaneGeometry(3, 2, 10, 10);
@@ -95,18 +106,28 @@ function createSection() {
     object.position.z = -12;
     object.position.y = -0.99;
 
+    object.tag = 'wood';
+
+    moveObjects.push(object);
+
     woods.push(object);
     group.add(object);
 
     nObject = object.clone();
     nObject.position.z = -14;
+    nObject.tag = 'wood';
     woods.push(nObject);
     group.add(nObject);
 
+    moveObjects.push(nObject);
+
     nObject = object.clone();
     nObject.position.z = -16;
+    nObject.tag = 'wood';
     woods.push(nObject);
     group.add(nObject);
+
+    moveObjects.push(nObject);
 
     for (let x = 0; x < 3; x++)
         woodAnimation.push(new KF.KeyFrameAnimator)
@@ -137,7 +158,7 @@ function onKeyDown(event)
                 break;
         }
 
-        console.log(mainChar);
+        //console.log(mainChar);
         keypressed = true;
     }
 }
@@ -151,6 +172,8 @@ function doesItCrash() {
     mainCharBoxHelper.update();
     //mainCharBox = new THREE.Box3().setFromObject(mainChar);
     mainCharBox = new THREE.Box3().setFromCenterAndSize(mainChar.position, mainCharBoxSize);
+    mainCharDownBox = new THREE.Box3().setFromCenterAndSize(new THREE.Vector3(mainChar.position.x, mainChar.position.y - 0.5, mainChar.position.z),
+       new THREE.Vector3(0, 1, 0));
 
 
     for (var collider of colliderObjects) {
@@ -175,6 +198,13 @@ function doesItCrash() {
 
             move = 'else';
         }
+
+        if (mainCharDownBox.intersectsBox(collider)) {
+            if (collider.tag == 'water'){
+                collidesWater = true;
+                console.log('Collides water ' + collider.tag);
+            }
+        }
     }
 
     for (var collider of movementColliders) {
@@ -184,13 +214,41 @@ function doesItCrash() {
             mainChar.position.y = 0;
             mainChar.position.z = 0;
         }
+
+        if (mainCharDownBox.intersectsBox(collider)) {
+            if (collider.tag == 'wood') {
+                collidesWood = true;
+                mainChar.position.x = collider.getCenter().x;
+                console.log('Collides wood ' + collider.tag);
+            }
+        }
     }
+
+    if (collidesWood) {
+        collidesWood = false;
+        collidesWater = false;
+    }
+
+    if (collidesWater) {
+        mainChar.position.x = 0;
+        mainChar.position.y = 0;
+        mainChar.position.z = 0;
+        collidesWood = false;
+        collidesWater = false;
+    }
+
 }
 
 function updateMovementColliders() {
     movementColliders = [];
     for (var moveColliders of moveObjects) {
         cubeBBox = new THREE.Box3().setFromObject(moveColliders);
+        if (moveColliders.tag == 'wood') {
+            //console.log('wood');
+            cubeBBox.tag = 'wood'
+            cubeBBox.theObject = movementColliders;
+        }
+
         movementColliders.push(cubeBBox);
     }
 }
@@ -199,7 +257,7 @@ function movementAnimation() {
 
     for (var car of cars) {
         duration = (Math.random() * 5 + 1) * 1000;
-        console.log(duration);
+        //console.log(duration);
         carAnimation = new KF.KeyFrameAnimator;
         carAnimation.init({ 
             interps:
