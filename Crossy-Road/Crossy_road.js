@@ -149,8 +149,9 @@ function onKeyUp(event)
 
 function doesItCrash() {
     mainCharBoxHelper.update();
-    mainCharBox = new THREE.Box3().setFromObject(mainChar);
-    //mainCharBox = new THREE.Box3().setFromCenterAndSize({center: mainChar.position, size: mainCharBoxSize});
+    //mainCharBox = new THREE.Box3().setFromObject(mainChar);
+    mainCharBox = new THREE.Box3().setFromCenterAndSize(mainChar.position, mainCharBoxSize);
+
 
     for (var collider of colliderObjects) {
         if (mainCharBox.intersectsBox(collider)) {
@@ -178,23 +179,10 @@ function doesItCrash() {
 
     for (var collider of movementColliders) {
         if (mainCharBox.intersectsBox(collider)) {
-            console.log('Collides');
-            switch(move) {
-                case 'up':
-                        mainChar.position.z += 2;
-                        break;
-
-                case 'right':
-                        mainChar.position.x -= 2;
-                        break;
-
-                case 'left':
-                        mainChar.position.x += 2;
-                        break;
-
-                default:
-                        break;
-            }
+            console.log('Collides car');
+            mainChar.position.x = 0;
+            mainChar.position.y = 0;
+            mainChar.position.z = 0;
         }
     }
 }
@@ -371,6 +359,8 @@ function createScene(canvas) {
     mainChar = new THREE.Mesh(geometry, material);
 
     mainCharBoxHelper =new THREE.BoxHelper(mainChar, 0x00ff00);
+
+
 
     group.add(mainChar);
     group.add(mainCharBoxHelper);
