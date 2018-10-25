@@ -19,9 +19,13 @@ var keypressed = false;
 
 var mainCharBox = null, mainCharBoxHelper = null;
 var move = null;
-var colliderObjects = [];
+var colliderObjects = [], moveObjects = [], movementColliders = [], cars = [], woods = [];
+var mainCharBoxSize = new THREE.Vector3( 1.5, 1.5, 1.5 );
+
+var carAnimation = null, woodAnimation = [];
 
 function createSection() {
+    // Land
     geometry = new THREE.PlaneGeometry(200, 6, 50, 50);
     var mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:0x5fba51, side:THREE.DoubleSide}));
     mesh.rotation.x = -Math.PI / 2;
@@ -29,7 +33,7 @@ function createSection() {
     mesh.position.z = -2;
 
     let x = Math.floor(Math.random() * 13 - 6) * 2;
-    let z = Math.floor(Math.random() * 2 + 1) * 2;
+    let z = Math.floor(Math.random() * 3) * 2;
     material = new THREE.MeshPhongMaterial({ color: 0xffffff });
     geometry = new THREE.CubeGeometry(2, 5, 2);
 
@@ -48,6 +52,67 @@ function createSection() {
     group.add(mesh);
     group.add(object);
     group.add(cubeBBoxHelper);
+
+    // Street
+    geometry = new THREE.PlaneGeometry(200, 6, 50, 50);
+    mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:0xbbbbbb, side:THREE.DoubleSide}));
+    mesh.rotation.x = -Math.PI / 2;
+    mesh.position.y = -1;
+    mesh.position.z = -8;
+
+    x = Math.floor(Math.random() * 13 - 6) * 2;
+    z = Math.floor(Math.random() * 3) * 2 + 6;
+    material = new THREE.MeshPhongMaterial({ color: 0xffffff });
+    geometry = new THREE.CubeGeometry(2, 2, 2);
+
+    object = new THREE.Mesh(geometry, material);
+    object.position.x = x;
+    object.position.z = -z;
+
+    cubeBBox = new THREE.Box3().setFromObject(object);
+    colliderObjects.push(cubeBBox);
+
+    moveObjects.push(object);
+    cars.push(object);
+    
+    group.add(mesh);
+    group.add(object);
+
+    // Water
+    geometry = new THREE.PlaneGeometry(200, 6, 50, 50);
+    mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:0x00ffff, side:THREE.DoubleSide}));
+    mesh.rotation.x = -Math.PI / 2;
+    mesh.position.y = -1;
+    mesh.position.z = -14;
+
+    group.add(mesh);
+
+    //z = Math.floor(Math.random() * 2 + 1) * 2 + 12;
+
+    geometry = new THREE.PlaneGeometry(3, 2, 10, 10);
+    object = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: 0xa52a2a }));
+    object.rotation.x = -Math.PI / 2;
+    object.position.z = -12;
+    object.position.y = -0.99;
+
+    woods.push(object);
+    group.add(object);
+
+    nObject = object.clone();
+    nObject.position.z = -14;
+    woods.push(nObject);
+    group.add(nObject);
+
+    nObject = object.clone();
+    nObject.position.z = -16;
+    woods.push(nObject);
+    group.add(nObject);
+
+    for (let x = 0; x < 3; x++)
+        woodAnimation.push(new KF.KeyFrameAnimator)
+
+    
+    
 }
 
 function onKeyDown(event)
@@ -72,7 +137,7 @@ function onKeyDown(event)
                 break;
         }
 
-        console.log(mainCharBox);
+        console.log(mainChar);
         keypressed = true;
     }
 }
@@ -85,8 +150,33 @@ function onKeyUp(event)
 function doesItCrash() {
     mainCharBoxHelper.update();
     mainCharBox = new THREE.Box3().setFromObject(mainChar);
+    //mainCharBox = new THREE.Box3().setFromCenterAndSize({center: mainChar.position, size: mainCharBoxSize});
 
     for (var collider of colliderObjects) {
+        if (mainCharBox.intersectsBox(collider)) {
+            console.log('Collides');
+            switch(move) {
+                case 'up':
+                        mainChar.position.z += 2;
+                        break;
+
+                case 'right':
+                        mainChar.position.x -= 2;
+                        break;
+
+                case 'left':
+                        mainChar.position.x += 2;
+                        break;
+
+                default:
+                        break;
+            }
+
+            move = 'else';
+        }
+    }
+
+    for (var collider of movementColliders) {
         if (mainCharBox.intersectsBox(collider)) {
             console.log('Collides');
             switch(move) {
@@ -109,14 +199,75 @@ function doesItCrash() {
     }
 }
 
+function updateMovementColliders() {
+    movementColliders = [];
+    for (var moveColliders of moveObjects) {
+        cubeBBox = new THREE.Box3().setFromObject(moveColliders);
+        movementColliders.push(cubeBBox);
+    }
+}
+
+function movementAnimation() {
+
+    for (var car of cars) {
+        duration = (Math.random() * 5 + 1) * 1000;
+        console.log(duration);
+        carAnimation = new KF.KeyFrameAnimator;
+        carAnimation.init({ 
+            interps:
+                [
+                    { 
+                        keys:[0, .5, 1], 
+                        values:[
+                                { x : 12 },
+                                { x : -12 },
+                                { x : 12 },
+                                ],
+                        target:car.position
+                    }
+                ],
+            loop: true,
+            duration: duration
+        });
+        carAnimation.start();
+    }
+
+    for (let x = 0; x < woods.length; x++) {
+        duration = (Math.random() * 3 + 3) * 1000;
+        woodAnimation[x].init({ 
+            interps:
+                [
+                    { 
+                        keys:[0, .5, 1], 
+                        values:[
+                                { x : 12 },
+                                { x : -12 },
+                                { x : 12 },
+                                ],
+                        target:woods[x].position
+                    }
+                ],
+            loop: true,
+            duration: duration
+        });
+        woodAnimation[x].start();
+    }
+}
+
 function run() {
     requestAnimationFrame(function() { run(); });
     
         // Render the scene
         renderer.render( scene, camera );
 
+        // Update objects that can move
+        updateMovementColliders();
+
         // Collider detection
         doesItCrash();
+
+        // Update the animations
+        KF.update();
 
         // Update the camera controller
         orbitControls.update();
@@ -226,7 +377,8 @@ function createScene(canvas) {
 
     createSection();
 
-
+    // Create the animations
+    movementAnimation();
 
     // Now add the group to our scene
     scene.add( root );
