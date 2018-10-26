@@ -19,7 +19,7 @@ var keypressed = false;
 
 var mainCharBox = null, mainCharBoxHelper = null;
 var move = null;
-var colliderObjects = [], moveObjects = [], movementColliders = [], cars = [], woods = [];
+var colliderObjects = [], moveObjects = [], movementColliders = [], floorColliders = [], cars = [], woods = [];
 var mainCharBoxSize = new THREE.Vector3( 1.5, 1.5, 1.5 );
 
 var carAnimation = null, woodAnimation = [], objAnimation = null;
@@ -27,6 +27,7 @@ var carAnimation = null, woodAnimation = [], objAnimation = null;
 var collidesWater = false, collidesWood = false;
 
 var land = 0;
+var floorCollides = 0;
 
 function createLandSection(line) {
     geometry = new THREE.PlaneGeometry(26, 2, 50, 50);
@@ -35,6 +36,12 @@ function createLandSection(line) {
     mesh.position.y = -1;
     mesh.position.z = -line * 2;
     mesh.tag = 'land';
+
+    // Land collider
+    let cubeBBox = new THREE.Box3().setFromObject(mesh);
+    cubeBBox.tag = 'land';
+
+    floorColliders.push(cubeBBox);
 
     let x = Math.floor(Math.random() * 13 - 6) * 2;
     //let z = Math.floor(Math.random() * 3) * 2;
@@ -48,7 +55,7 @@ function createLandSection(line) {
     object.position.y = 1.5;
 
     // Collider
-    let cubeBBox = new THREE.Box3().setFromObject(object);
+    cubeBBox = new THREE.Box3().setFromObject(object);
     let cubeBBoxHelper = new THREE.BoxHelper(object, 0x00ff00);
     //console.log(cubeBBox);
     colliderObjects.push(cubeBBox);
@@ -66,6 +73,12 @@ function createStreetSection(line) {
     mesh.position.z = -line * 2;
 
     mesh.tag = 'street';
+
+    // Street collider
+    cubeBBox = new THREE.Box3().setFromObject(mesh);
+    cubeBBox.tag = 'street';
+
+    floorColliders.push(cubeBBox);
 
     //let x = Math.floor(Math.random() * 13 - 6) * 2;
     //z = Math.floor(Math.random() * 3) * 2 + 6;
@@ -101,7 +114,7 @@ function createWaterSection(line) {
     cubeBBox = new THREE.Box3().setFromObject(mesh);
     cubeBBox.tag = 'water';
 
-    colliderObjects.push(cubeBBox);
+    floorColliders.push(cubeBBox);
 
     //z = Math.floor(Math.random() * 2 + 1) * 2 + 12;
 
@@ -339,14 +352,24 @@ function doesItCrash() {
 
             move = 'else';
         }
+    }
 
+    floorCollides = 0;
+    for (var collider of floorColliders) {
         if (mainCharDownBox.intersectsBox(collider)) {
             if (collider.tag == 'water'){
                 collidesWater = true;
                 console.log('Collides water ' + collider.tag);
+            } else {
+                //console.log(collider.tag);
+                if (collider.tag == 'land' || collider.tag == 'street')
+                    floorCollides = 1;
             }
         }
     }
+
+    if (floorCollides == 0)
+        collidesWater = true;
 
     for (var collider of movementColliders) {
         if (mainCharBox.intersectsBox(collider)) {
