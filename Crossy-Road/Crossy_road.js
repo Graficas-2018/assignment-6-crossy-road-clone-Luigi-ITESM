@@ -299,6 +299,7 @@ function onKeyDown(event)
                 createSection();
                 //group.position.z -= 2;
                 move = 'up';
+                camera.position.z -= 1.5;
                 break;
 
             case 37:
@@ -377,6 +378,7 @@ function doesItCrash() {
             mainChar.position.x = 0;
             mainChar.position.y = 0;
             mainChar.position.z = 0;
+            camera.position.z = 0;
         }
 
         if (mainCharDownBox.intersectsBox(collider)) {
@@ -399,6 +401,7 @@ function doesItCrash() {
         mainChar.position.z = 0;
         collidesWood = false;
         collidesWater = false;
+        camera.position.z = 0;
     }
 
 }
@@ -546,11 +549,19 @@ function createScene(canvas) {
 
     // Add  a camera so we can view the scene
     camera = new THREE.PerspectiveCamera( 45, canvas.width / canvas.height, 1, 4000 );
-    //camera.position.set(0, 6, 30);
-    camera.position.set(16.97737797237124, 23.745799149115435, 7.846899104304361)
+    camera.position.set(40, 6, 0);
+
+    //console.log(camera.rotation);
+    //camera.rotation.set(Math.PI / 6, Math.PI / 2, 0);
+    camera.rotation.y = Math.PI / 2;
+    //console.log(camera.rotation);
+    //camera.rotation.z = Math.PI / 6;
+    //console.log(camera.rotation);
+
+    //camera.position.set(16.97737797237124, 23.745799149115435, 7.846899104304361)
     scene.add(camera);
 
-    orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
+    //orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
         
     // Create a group to hold all the objects
     root = new THREE.Object3D;
