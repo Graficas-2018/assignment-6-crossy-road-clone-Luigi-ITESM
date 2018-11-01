@@ -28,6 +28,7 @@ var collidesWater = false, collidesWood = false;
 
 var land = 0;
 var floorCollides = 0;
+var score = 0;
 
 function createLandSection(line) {
     geometry = new THREE.PlaneGeometry(26, 2, 50, 50);
@@ -143,63 +144,7 @@ function createWaterSection(line) {
 }
 
 function createSection() {
-    // Land
-    /*geometry = new THREE.PlaneGeometry(26, 6, 50, 50);
-    var mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:0x5fba51, side:THREE.DoubleSide}));
-    mesh.rotation.x = -Math.PI / 2;
-    mesh.position.y = -1;
-    mesh.position.z = -2;
-    mesh.tag = 'land';
 
-    let x = Math.floor(Math.random() * 13 - 6) * 2;
-    let z = Math.floor(Math.random() * 3) * 2;
-    material = new THREE.MeshPhongMaterial({ color: 0xffffff });
-    geometry = new THREE.CubeGeometry(2, 5, 2);
-
-    // And put the geometry and material together into a mesh
-    let object = new THREE.Mesh(geometry, material);
-    object.position.x = x;
-    object.position.z = -z;
-    object.position.y = 1.5;
-
-    // Collider
-    let cubeBBox = new THREE.Box3().setFromObject(object);
-    let cubeBBoxHelper = new THREE.BoxHelper(object, 0x00ff00);
-    //console.log(cubeBBox);
-    colliderObjects.push(cubeBBox);
-
-    group.add(mesh);
-    group.add(object);
-    group.add(cubeBBoxHelper);*/
-    
-
-    // Street
-    /*
-    geometry = new THREE.PlaneGeometry(26, 6, 50, 50);
-    mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:0xbbbbbb, side:THREE.DoubleSide}));
-    mesh.rotation.x = -Math.PI / 2;
-    mesh.position.y = -1;
-    mesh.position.z = -8;
-
-    mesh.tag = 'street';
-
-    x = Math.floor(Math.random() * 13 - 6) * 2;
-    z = Math.floor(Math.random() * 3) * 2 + 6;
-    material = new THREE.MeshPhongMaterial({ color: 0xffffff });
-    geometry = new THREE.CubeGeometry(2, 2, 2);
-
-    object = new THREE.Mesh(geometry, material);
-    object.position.x = x;
-    object.position.z = -z;
-
-    cubeBBox = new THREE.Box3().setFromObject(object);
-    colliderObjects.push(cubeBBox);
-
-    moveObjects.push(object);
-    cars.push(object);
-    
-    group.add(mesh);
-    group.add(object);*/
     if (land == 0) {
         createLandSection(0);
         land++;
@@ -240,57 +185,6 @@ function createSection() {
 
     
 
-    /*
-    // Water
-    geometry = new THREE.PlaneGeometry(26, 6, 50, 50);
-    mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:0x00ffff, side:THREE.DoubleSide}));
-    mesh.rotation.x = -Math.PI / 2;
-    mesh.position.y = -1;
-    mesh.position.z = -14;
-
-    group.add(mesh);
-
-    //waterCollider
-    cubeBBox = new THREE.Box3().setFromObject(mesh);
-    cubeBBox.tag = 'water';
-
-    colliderObjects.push(cubeBBox);
-
-    //z = Math.floor(Math.random() * 2 + 1) * 2 + 12;
-
-    geometry = new THREE.PlaneGeometry(3, 2, 10, 10);
-    object = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: 0xa52a2a }));
-    object.rotation.x = -Math.PI / 2;
-    object.position.z = -12;
-    object.position.y = -0.99;
-
-    object.tag = 'wood';
-
-    moveObjects.push(object);
-
-    woods.push(object);
-    group.add(object);
-
-    nObject = object.clone();
-    nObject.position.z = -14;
-    nObject.tag = 'wood';
-    woods.push(nObject);
-    group.add(nObject);
-
-    moveObjects.push(nObject);
-
-    nObject = object.clone();
-    nObject.position.z = -16;
-    nObject.tag = 'wood';
-    woods.push(nObject);
-    group.add(nObject);
-
-    moveObjects.push(nObject);
-
-    for (let x = 0; x < 3; x++)
-        woodAnimation.push(new KF.KeyFrameAnimator)*/
-
-    
     
 }
 
@@ -307,6 +201,7 @@ function onKeyDown(event)
                 move = 'up';
                 camera.position.z -= 1.5;
                 spotLight.position.z -= 1.5;
+                score++;
 
                 break;
 
@@ -347,6 +242,7 @@ function doesItCrash() {
                         mainChar.position.z += 2;
                         camera.position.z -= 1.5;
                         spotLight.position.z -= 1.5;
+                        score--;
                         break;
 
                 case 'right':
@@ -389,6 +285,8 @@ function doesItCrash() {
             mainChar.position.y = 0;
             mainChar.position.z = 0;
             camera.position.z = 0;
+            spotLight.position.z = -10;
+            score = 0;
         }
 
         if (mainCharDownBox.intersectsBox(collider)) {
@@ -413,7 +311,10 @@ function doesItCrash() {
         collidesWater = false;
         camera.position.z = 0;
         spotLight.position.z = -10;
+        score = 0;
     }
+
+    document.getElementById("score").innerHTML = score;
 
 }
 
@@ -639,8 +540,9 @@ function createScene(canvas) {
 
     createSection();
 
+
     // Create the animations
-    //movementAnimation();
+    document.getElementById("score").innerHTML = score;
 
     // Now add the group to our scene
     scene.add( root );
