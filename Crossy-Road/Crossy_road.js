@@ -44,8 +44,13 @@ function createLandSection(line) {
     floorColliders.push(cubeBBox);
 
     let x = Math.floor(Math.random() * 13 - 6) * 2;
+
+    if (line == 0) {
+        while (x == mainChar.position.x)
+            x = Math.floor(Math.random() * 13 - 6) * 2;
+    }
     //let z = Math.floor(Math.random() * 3) * 2;
-    material = new THREE.MeshPhongMaterial({ color: 0xffffff });
+    material = new THREE.MeshPhongMaterial({ color: 0x106300 });
     geometry = new THREE.CubeGeometry(2, 5, 2);
 
     // And put the geometry and material together into a mesh
@@ -56,13 +61,13 @@ function createLandSection(line) {
 
     // Collider
     cubeBBox = new THREE.Box3().setFromObject(object);
-    let cubeBBoxHelper = new THREE.BoxHelper(object, 0x00ff00);
+    //let cubeBBoxHelper = new THREE.BoxHelper(object, 0x00ff00);
     //console.log(cubeBBox);
     colliderObjects.push(cubeBBox);
 
     group.add(mesh);
     group.add(object);
-    group.add(cubeBBoxHelper);
+    //group.add(cubeBBoxHelper);
 }
 
 function createStreetSection(line) {
@@ -82,7 +87,8 @@ function createStreetSection(line) {
 
     //let x = Math.floor(Math.random() * 13 - 6) * 2;
     //z = Math.floor(Math.random() * 3) * 2 + 6;
-    material = new THREE.MeshPhongMaterial({ color: 0xffffff });
+    let color = new THREE.Color('#'+Math.floor(Math.random()*16777215).toString(16));
+    material = new THREE.MeshPhongMaterial({ color: color });
     geometry = new THREE.CubeGeometry(2, 2, 2);
 
     let object = new THREE.Mesh(geometry, material);
@@ -300,6 +306,8 @@ function onKeyDown(event)
                 //group.position.z -= 2;
                 move = 'up';
                 camera.position.z -= 1.5;
+                spotLight.position.z -= 1.5;
+
                 break;
 
             case 37:
@@ -324,7 +332,7 @@ function onKeyUp(event)
 }
 
 function doesItCrash() {
-    mainCharBoxHelper.update();
+    //mainCharBoxHelper.update();
     //mainCharBox = new THREE.Box3().setFromObject(mainChar);
     mainCharBox = new THREE.Box3().setFromCenterAndSize(mainChar.position, mainCharBoxSize);
     mainCharDownBox = new THREE.Box3().setFromCenterAndSize(new THREE.Vector3(mainChar.position.x, mainChar.position.y - 0.5, mainChar.position.z),
@@ -337,6 +345,8 @@ function doesItCrash() {
             switch(move) {
                 case 'up':
                         mainChar.position.z += 2;
+                        camera.position.z -= 1.5;
+                        spotLight.position.z -= 1.5;
                         break;
 
                 case 'right':
@@ -402,6 +412,7 @@ function doesItCrash() {
         collidesWood = false;
         collidesWater = false;
         camera.position.z = 0;
+        spotLight.position.z = -10;
     }
 
 }
@@ -549,7 +560,7 @@ function createScene(canvas) {
 
     // Add  a camera so we can view the scene
     camera = new THREE.PerspectiveCamera( 45, canvas.width / canvas.height, 1, 4000 );
-    camera.position.set(40, 6, 0);
+    camera.position.set(40, 10, 0);
 
     //console.log(camera.rotation);
     //camera.rotation.set(Math.PI / 6, Math.PI / 2, 0);
@@ -594,7 +605,7 @@ function createScene(canvas) {
     root.add(group);
 
     // Create a texture map
-    var map = new THREE.TextureLoader().load(mapUrl);
+    /*var map = new THREE.TextureLoader().load(mapUrl);
     map.wrapS = map.wrapT = THREE.RepeatWrapping;
     map.repeat.set(8, 8);
 
@@ -611,20 +622,20 @@ function createScene(canvas) {
     group.add( mesh );
     mesh.castShadow = false;
     mesh.receiveShadow = true;
-    
+    */
 
-    var material = new THREE.MeshPhongMaterial({ color: 0xffffff });
+    var material = new THREE.MeshPhongMaterial({ color: 0xfcb02d });
     geometry = new THREE.CubeGeometry(2, 2, 2);
 
     // And put the geometry and material together into a mesh
     mainChar = new THREE.Mesh(geometry, material);
 
-    mainCharBoxHelper =new THREE.BoxHelper(mainChar, 0x00ff00);
+    //mainCharBoxHelper =new THREE.BoxHelper(mainChar, 0x00ff00);
 
 
 
     root.add(mainChar);
-    root.add(mainCharBoxHelper);
+    //root.add(mainCharBoxHelper);
 
     createSection();
 
